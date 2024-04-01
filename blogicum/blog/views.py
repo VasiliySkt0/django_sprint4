@@ -1,9 +1,9 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
+from django.db.models import Q
 from django.views.generic import (
     CreateView, DeleteView, ListView, UpdateView
 )
@@ -34,16 +34,18 @@ class PostDetailView(ListView):
     pk_url_kwarg = 'post_id'
     paginate_by = POST_MAX_LENGTH
 
-    def get_queryset(self):
-        return self.get_object().comments.select_related('author')
-
-    def get_object(self):
-        post = get_object_or_404(Post, id=self.kwargs[self.pk_url_kwarg])
-        if self.request.user != post.author and (
-            post.pub_date > timezone.now() or not post.is_published
-        ):
-            raise Http404
-        return post
+    def get_object(self, queryset=None):
+        return get_object_or_404(
+            self.model.objects.filter(
+                Q(author_id=self.request.user.id)
+                | Q(pub_date__lte=timezone.now())
+                & Q(is_published=True)
+                & Q(category__is_published=True)
+            ),
+            pk=self.kwargs[
+                self.pk_url_kwarg
+            ]
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -158,5 +160,4 @@ class RegistrationCreateView(CreateView):
         if self.request.user.is_authenticated:
             return reverse('blog:profile',
                            kwargs={'username': self.request.user.username})
-        else:
-            return reverse('blog:index')
+        return reverse('blog:index')
