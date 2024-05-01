@@ -5,9 +5,11 @@ from django.db import models
 
 User = get_user_model()
 
+FIELDS_MAX_LENGTH = 256
+
 
 class Category(PublishedCreatedModel):
-    title = models.CharField('Заголовок', max_length=256)
+    title = models.CharField('Заголовок', max_length=FIELDS_MAX_LENGTH)
     description = models.TextField('Описание')
     slug = models.SlugField(
         'Идентификатор', unique=True,
@@ -26,7 +28,7 @@ class Category(PublishedCreatedModel):
 
 
 class Location(PublishedCreatedModel):
-    name = models.CharField('Название места', max_length=256)
+    name = models.CharField('Название места', max_length=FIELDS_MAX_LENGTH)
 
     class Meta:
         verbose_name = 'местоположение'
@@ -37,7 +39,7 @@ class Location(PublishedCreatedModel):
 
 
 class Post(PublishedCreatedModel):
-    title = models.CharField('Заголовок', max_length=256)
+    title = models.CharField('Заголовок', max_length=FIELDS_MAX_LENGTH)
     text = models.TextField('Текст')
     pub_date = models.DateTimeField(
         'Дата и время публикации',
